@@ -3,7 +3,7 @@ using SamuraiApp.Domain;
 
 namespace SamuraiApp.Data
 {
-    public class SamuraiContext:DbContext
+    public sealed class SamuraiContext:DbContext
     {
         public SamuraiContext()
         {
@@ -11,7 +11,9 @@ namespace SamuraiApp.Data
 
         public SamuraiContext(DbContextOptions<SamuraiContext> options)
             : base(options)
-        { }
+        {
+            Database.EnsureCreated();
+        }
         
 
         public DbSet<Samurai> Samurais { get; set; }
@@ -41,8 +43,9 @@ namespace SamuraiApp.Data
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            //optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=SamuraiAppDataCore;Trusted_Connection=True;", b => b.MigrationsAssembly("WebApp"));
             optionsBuilder.UseLazyLoadingProxies().UseSqlServer(
-                 "Server=DESKTOP-MABFP66;Database=SamuraiAppDataCore;Trusted_Connection=True;");
+                 "Server=(localdb)\\MSSQLLocalDB;Database=SamuraiAppDataCore;Trusted_Connection=True;", b => b.MigrationsAssembly("SamuraiApp.Data"));
         }
     }
 }

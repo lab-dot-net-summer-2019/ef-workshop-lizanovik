@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,10 @@ namespace WebApp.Controllers
 
             //TODO
             //Get single Samurai, including quotes and SecretIdentity with id = id (query param)
+            var samurai = _context.Samurais.Where(s => s.Id == id)
+                .Include(s => s.Quotes)
+                .Include(s => s.SecretIdentity)
+                .FirstOrDefault();
 
             if (samurai == null)
             {
@@ -56,11 +61,20 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Samurai samurai)
         {
-            if (ModelState.IsValid)
-            {
                 //TODO
                 //Add samurai
-                return RedirectToAction(nameof(Index));
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    _context.Samurais.Add(samurai);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction("Index");
+                }
+            }
+            catch (DataException)
+            {
+                ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists see your system administrator.");
             }
             return View(samurai);
         }
@@ -75,6 +89,10 @@ namespace WebApp.Controllers
 
             //TODO
             //Get single Samurai with quotes and SecretIdentity with id = id (query param)
+            var samurai = _context.Samurais.Where(s => s.Id == id)
+                .Include(s => s.Quotes)
+                .Include(s => s.SecretIdentity)
+                .FirstOrDefault();
 
             if (samurai == null) {
                 return NotFound();
@@ -84,7 +102,7 @@ namespace WebApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //    public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Samurai samurai)
+        //public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Samurai samurai)
         public async Task<IActionResult> Edit(int id, Samurai samurai)
         {
             if (id != samurai.Id)
@@ -96,8 +114,14 @@ namespace WebApp.Controllers
             {
                 try
                 {
-                    //TODO
-                    //Update samurai 
+                    //var sam = _context.Samurais
+                    //    .SingleOrDefault(s => s.Id == id);
+                    //
+                    //var updateResult = await TryUpdateModelAsync<Samurai>(sam, "", s => s.Name, s => s.SecretIdentity, s => s.Quotes);
+                    //_context.SaveChanges();
+
+                    _context.Entry(samurai).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -125,8 +149,10 @@ namespace WebApp.Controllers
 
             //TODO
             //Get single Samurai with id = id (query param)
+            var samurai = await _context.Samurais.FindAsync(id);
 
-            if (samurai == null) {
+            if (samurai == null)
+            {
                 return NotFound();
             }
 
@@ -141,6 +167,10 @@ namespace WebApp.Controllers
             //TODO
             //Get single Samurai with id = id (query param)
             //and remove
+
+            var samurai = _context.Samurais.Find(id);
+            _context.Samurais.Remove(samurai ?? throw new InvalidOperationException());
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
